@@ -1,0 +1,161 @@
+/* 网易云息屏歌词 —— 共享歌词样式（覆盖层与设置页预览共用） */
+
+:root {
+  --font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", sans-serif;
+  --font-size: 42px;
+  --text-color: #ffffff;
+  --glow-color: #4da6ff;
+  --lyric-opacity: 1;
+  --side-fade: 12%;
+  --line-height: 1.55;
+}
+
+/* 歌词容器：负责上下渐变模糊（垂直 mask）+ 侧边模糊（水平 mask） */
+.lyric-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 var(--side-fade), #000 calc(100% - var(--side-fade)), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 var(--side-fade), #000 calc(100% - var(--side-fade)), transparent 100%);
+  mask-composite: intersect;
+}
+
+/* 可滚动歌词列表（整份歌词，通过 translateY 让当前行居中） */
+.lyric-list {
+  will-change: transform;
+  transition: transform 0.32s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.lyric-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lyric-line .lyric-text,
+.lyric-trans .lyric-text {
+  display: inline-block;
+  flex: none;
+}
+
+.lyric-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: center;
+  white-space: nowrap;
+  max-width: 100%;
+  padding: 0 48px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: clip;
+  transition: opacity 0.25s cubic-bezier(0.23, 1, 0.32, 1), filter 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.lyric-trans {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-size: calc(var(--font-size) * 0.8);
+  font-weight: 400;
+  color: var(--text-color);
+  opacity: 0.72;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 100%;
+  padding: 0 48px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+/* 距离分级：离当前行越远越模糊、越透明 */
+.lyric-line.d0, .lyric-entry.d0 .lyric-line { opacity: 1; filter: blur(0px); }
+.lyric-line.d1, .lyric-entry.d1 .lyric-line { opacity: 0.5;  filter: blur(2px); }
+.lyric-line.d2, .lyric-entry.d2 .lyric-line { opacity: 0.2;  filter: blur(5px); }
+.lyric-line.dn, .lyric-entry.dn .lyric-line { opacity: 0;    filter: blur(8px); }
+
+.lyric-entry.dn .lyric-trans,
+.lyric-entry.d2 .lyric-trans,
+.lyric-entry.d1.dn .lyric-trans { opacity: 0; }
+.lyric-entry.dn { visibility: hidden; }
+
+/* 当前行的翻译也带光晕 */
+.lyric-entry.d0 .lyric-trans {
+  opacity: 0.85;
+  text-shadow:
+    0 0 6px var(--glow-color),
+    0 0 16px var(--glow-color);
+}
+
+/* 当前行 —— 光晕 */
+.lyric-line.current {
+  color: var(--text-color);
+  text-shadow:
+    0 0 8px var(--glow-color),
+    0 0 22px var(--glow-color),
+    0 0 46px var(--glow-color);
+}
+
+/* 设置窗口预览：光晕随预览比例缩放，保持与全屏一致的观感 */
+.preview .lyric-line.current {
+  text-shadow:
+    0 0 calc(8px * var(--pv-scale, 1)) var(--glow-color),
+    0 0 calc(22px * var(--pv-scale, 1)) var(--glow-color),
+    0 0 calc(46px * var(--pv-scale, 1)) var(--glow-color);
+}
+
+/* 流光扫字：在文字表面流动的光带 */
+body.sweep-on .lyric-line.current {
+  background: linear-gradient(
+    100deg,
+    var(--text-color) 0%,
+    var(--text-color) 36%,
+    var(--glow-color) 47%,
+    #ffffff 50%,
+    var(--glow-color) 53%,
+    var(--text-color) 64%,
+    var(--text-color) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter:
+    drop-shadow(0 0 7px var(--glow-color))
+    drop-shadow(0 0 18px var(--glow-color));
+  animation: lyric-sweep 2.4s linear infinite;
+}
+
+/* 呼吸动画：轻微缩放 + 明暗 */
+body.breathe-on .lyric-line.current {
+  animation: lyric-breathe 3.4s ease-in-out infinite;
+}
+
+body.sweep-on.breathe-on .lyric-line.current {
+  animation:
+    lyric-breathe 3.4s ease-in-out infinite,
+    lyric-sweep 2.4s linear infinite;
+}
+
+@keyframes lyric-sweep {
+  0%   { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+
+@keyframes lyric-breathe {
+  0%, 100% { opacity: 1;      transform: scale(1); }
+  50%      { opacity: 0.72;   transform: scale(1.045); }
+}

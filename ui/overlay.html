@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>息屏歌词</title>
+<link rel="stylesheet" href="lyrics.css">
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #000; overflow: hidden; user-select: none; cursor: none;
+  }
+  #stage {
+    position: fixed; left: 0; right: 0; top: 50%;
+    transform: translateY(-50%);
+  }
+  #viewport { width: 100%; }
+  #song-info {
+    position: fixed; top: 4vh; left: 0; right: 0;
+    text-align: center; color: #888; font-size: 15px;
+    font-family: "Microsoft YaHei", sans-serif; letter-spacing: 1px;
+    opacity: 0.7;
+  }
+  #hint {
+    position: fixed; bottom: 6vh; left: 0; right: 0;
+    text-align: center; color: #666; font-size: 16px;
+    font-family: "Microsoft YaHei", sans-serif; letter-spacing: 1px;
+    white-space: pre-line; line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="viewport" class="lyric-viewport">
+      <div id="list" class="lyric-list"></div>
+    </div>
+  </div>
+  <div id="song-info"></div>
+  <div id="hint"></div>
+
+<script>
+const DEFAULTS = {
+  font_family: "微软雅黑", font_size: 110, opacity: 100, vertical_position: 50,
+  text_color: "#ffffff", glow_color: "#4da6ff", side_blur: 30,
+  breathing: true, sweep: true,
+};
+
+let settings = { ...DEFAULTS };
+let songKey = null;
+let lines = [];
+let mode = "chinese";
+let current = null;
+let lastCenter = null;
+let lastCurrentText = "";
+let lastInfo = "";
+let lastHint = "";
+
+const $ = (id) => document.getElementById(id);
+
+// 距离层级字号系数：当前句 100%，相邻 82%，再次 72%，更远 62%
+const DIST_FACTOR = [1.0, 0.82, 0.72, 0.62];
+// 统一显示 5 句（中英文一致，不显示翻译）
+const VISIBLE_ROWS = 5;
+
+function lineAvail(el) {
+  const cs = getComputedStyle(el);
+  const pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+  return el.clientWidth - pad;
+}
+
+// 按距离层级排版：当前句最大、相邻渐小；句与句之间留出宽松空隙。
+// 同时保证任何单行（含超长句）不超出屏幕宽度。
+function relayout(idx) {
+  const list = $("list");
+  const entries = Array.from(list.children);
+  if (!entries.length) return;
+  const center = idx < 0 ? 0 : Math.min(idx, entries.length - 1);
+  let offset = 0;
+  entries.forEach((entry, i) => {
+    const d = Math.abs(i - center);
+    const factor = DIST_FACTOR[Math.min(d, DIST_FACTOR.length - 1)];
+    const line = entry.querySelector(".lyric-line");
+    const span = line ? line.querySelector(".lyric-text") : null;
+
+    // 主歌词字号 = 用户字号 × 距离系数；长句在此基础上有序缩小以放得下
+    let linePx = settings.font_size * factor;
+    line.style.fontSize = linePx + "px";
+    const avail = lineAvail(line);
+    const need = span ? span.getBoundingClientRect().width : 0;
+    if (avail > 0 && need > avail + 1) {
+      linePx = Math.max(8, linePx * (avail / need) * 0.97);
+      line.style.fontSize = linePx + "px";
+    }
+    line.dataset.need = need;
+    // 行高紧凑，句间由 gap 提供呼吸空间（人体工学：清晰分层、不松散）
+    const lineH = Math.max(16, Math.round(linePx * 1.32));
+    line.style.height = lineH + "px";
+    const gap = Math.round(linePx * 0.62);
+    const entryH = lineH + gap;
+    entry.style.height = entryH + "px";
+    entry._offset = offset;
+    entry._lineH = lineH;
+    entry._entryH = entryH;
+    offset += entryH;
+  });
+  // 视口高度固定为屏幕可视区域，歌词在内部滚动（上下由渐变遮罩淡出）
+  const visible = Math.round(window.innerHeight * 0.92);
+  $("viewport").style.height = visible + "px";
+}
+
+// 重新排版并（若已知当前行）重新定位
+function layout() {
+  if (current !== null) {
+    updateView(current);
+  } else {
+    relayout(0);
+  }
+}
+
+// 当前行如果本身超出屏幕宽度，从左到右逐字显现
+function revealLine(el) {
+  const span = el.querySelector(".lyric-text") || el;
+  span.getAnimations().forEach((a) => { if (a.id === "lyric-reveal") a.cancel(); });
+  const need = parseFloat(el.dataset.need || "0");
+  const avail = lineAvail(el);
+  if (!(avail > 0 && need > avail + 1)) return;
+  const n = Math.max(1, Array.from(span.textContent || "").length);
+  const dur = Math.min(1500, Math.max(300, n * 38));
+  span.animate(
+    [{ clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)" }],
+    { duration: dur, easing: "steps(" + n + ", end)",
+      fill: "forwards", id: "lyric-reveal" }
+  );
+}
+
+function rebuild() {
+  const list = $("list");
+  list.innerHTML = "";
+  lines.forEach((ln) => {
+    const entry = document.createElement("div");
+    entry.className = "lyric-entry";
+    const line = document.createElement("div");
+    line.className = "lyric-line";
+    const span = document.createElement("span");
+    span.className = "lyric-text";
+    span.textContent = ln.text || "";
+    line.appendChild(span);
+    entry.appendChild(line);
+    list.appendChild(entry);
+  });
+  lastCenter = null;
+  lastCurrentText = "";
+  layout();
+}
+
+function updateView(idx) {
+  const list = $("list");
+  const entries = list.children;
+  if (!entries.length) return;
+
+  // 距离层级字号随当前行变化，先重新排版
+  relayout(idx);
+
+  const vh = $("viewport").clientHeight;
+
+  // 当前行索引（无当前行时回退到第 0 行定位，但不高亮）
+  let centerIdx = idx < 0 ? 0 : idx;
+  if (centerIdx > entries.length - 1) centerIdx = entries.length - 1;
+  const centerEntry = entries[centerIdx];
+  const eh = centerEntry._entryH || 0;
+  const lineH = centerEntry._lineH || eh;
+  const centerOffset = lineH / 2;
+  const targetY = vh / 2 - ((centerEntry._offset || 0) + centerOffset);
+
+  // 大跨度跳变（拖进度/回退/切歌）直接跳到位，不做滚动动画，避免"慢慢追上去"
+  const jump = lastCenter !== null && Math.abs(centerIdx - lastCenter) > 2;
+  if (jump) {
+    list.style.transition = "none";
+    list.style.transform = "translateY(" + targetY + "px)";
+    void list.offsetHeight;  // 强制应用
+    list.style.transition = "";
+  } else {
+    list.style.transform = "translateY(" + targetY + "px)";
+  }
+  lastCenter = centerIdx;
+
+  // 以当前句为中心的 5 句窗口（靠近开头/结尾时自动贴边）
+  const total = entries.length;
+  const winSize = Math.min(VISIBLE_ROWS, total);
+  const winStart = Math.max(0, Math.min(centerIdx - Math.floor(winSize / 2), total - winSize));
+
+  for (let i = 0; i < total; i++) {
+    const inWindow = i >= winStart && i < winStart + winSize;
+    if (!inWindow) {
+      if (entries[i].className !== "lyric-entry dn") entries[i].className = "lyric-entry dn";
+      continue;
+    }
+    const d = Math.abs(i - centerIdx);
+    // 窗口内按距离分层（≥2 统一为最模糊层）
+    const cls = "lyric-entry " + (d === 0 ? "d0" : d === 1 ? "d1" : "d2");
+    if (entries[i].className !== cls) entries[i].className = cls;
+    const line = entries[i].querySelector(".lyric-line");
+    if (line) {
+      const isCurrent = i === idx;
+      const wasCurrent = line.classList.contains("current");
+      if (isCurrent !== wasCurrent) line.classList.toggle("current", isCurrent);
+      if (isCurrent) {
+        // 连续相同的歌词（副歌重复）：不重播逐字动画，避免闪一下
+        const span = line.querySelector(".lyric-text");
+        const text = span ? span.textContent : "";
+        if (text && text === lastCurrentText) {
+          if (span) span.getAnimations().forEach((a) => {
+            if (a.id === "lyric-reveal") a.cancel();
+          });
+        } else {
+          revealLine(line);   // 仅当前行、且本身超屏时逐字显现
+        }
+        lastCurrentText = text;
+      } else {
+        const span = line.querySelector(".lyric-text");
+        if (span) span.getAnimations().forEach((a) => {
+          if (a.id === "lyric-reveal") a.cancel();
+        });
+      }
+    }
+  }
+}
+
+function updateStatus(s) {
+  const info = (s.title ? s.title + (s.artist ? " · " + s.artist : "") : "");
+  if (info !== lastInfo) {
+    lastInfo = info;
+    $("song-info").textContent = info;
+  }
+  let hint = "";
+  switch (s.status) {
+    case "no_song": hint = "未检测到播放中的音乐\n请先在网易云音乐中播放歌曲"; break;
+    case "loading": hint = "正在加载歌词…"; break;
+    case "no_lyrics": hint = "未找到歌词"; break;
+    case "paused": hint = "已暂停"; break;
+    default: hint = "";
+  }
+  if (hint !== lastHint) {
+    lastHint = hint;
+    $("hint").textContent = hint;
+  }
+}
+
+function applySettings(s) {
+  settings = { ...settings, ...(s || {}) };
+  const root = document.documentElement.style;
+  root.setProperty("--font-family", '"' + settings.font_family + '", "Microsoft YaHei", sans-serif');
+  root.setProperty("--font-size", settings.font_size + "px");
+  root.setProperty("--text-color", settings.text_color);
+  root.setProperty("--glow-color", settings.glow_color);
+  root.setProperty("--side-fade", (settings.side_blur * 0.35) + "%");
+  document.body.classList.toggle("sweep-on", !!settings.sweep);
+  document.body.classList.toggle("breathe-on", !!settings.breathing);
+  $("stage").style.top = settings.vertical_position + "%";
+  $("stage").style.opacity = (settings.opacity / 100);
+  layout();
+  try { window.focus(); } catch (e) { /* ignore */ }
+}
+
+async function tick() {
+  let s;
+  try { s = await pywebview.api.get_state(); }
+  catch (e) { return; }
+  if (!s) return;
+  if (s.request_close) { pywebview.api.close_overlay(); return; }
+
+  // 歌词签名：歌名变化或歌词由空变有时都要重建（后端切歌瞬间会先返回空歌词）
+  const key = (s.title || "") + "|" + (s.artist || "");
+  const first = (s.lines && s.lines[0]) ? (s.lines[0].time + s.lines[0].text) : "";
+  const sig = key + "|" + ((s.lines && s.lines.length) || 0) + "|" + first;
+  if (sig !== songKey) {
+    songKey = sig;
+    lines = s.lines || [];
+    mode = s.mode || "chinese";
+    current = null;
+    rebuild();
+  }
+  if (s.current !== current) {
+    current = s.current;
+    updateView(current);
+  }
+  updateStatus(s);
+}
+
+async function init() {
+  try {
+    const s = await pywebview.api.get_settings();
+    applySettings(s);
+  } catch (e) { applySettings(DEFAULTS); }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" || e.key === "Esc") {
+      pywebview.api.close_overlay();
+    }
+  });
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  // 窗口尺寸变化（含从屏幕外移入全屏）后重新测量布局与字号
+  window.addEventListener("resize", () => {
+    layout();
+    if (current !== null) updateView(current);
+  });
+  setInterval(tick, 100);
+}
+
+window.applySettings = applySettings;
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
