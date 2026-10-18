@@ -87,3 +87,8 @@
 - 制作工具：**DeepSeek V4.1 Flash**
 - 完整项目文档：[PROJECT.md](PROJECT.md)
 
+## Contributors
+
+- [XYX0809](https://github.com/XYX0809) — 项目发起与主要开发（第一贡献者）
+- [BA4IHB](https://github.com/ba4ihb) — 方案讨论与功能验证
+
