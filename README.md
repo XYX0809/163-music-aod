@@ -2,10 +2,10 @@
 
 <p>
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg">
-  <img alt="Python" src="https://img.shields.io/badge/Python-58.1%25-3572A5?logo=python&logoColor=white">
-  <img alt="HTML" src="https://img.shields.io/badge/HTML-33.5%25-E34C26?logo=html5&logoColor=white">
-  <img alt="CSS" src="https://img.shields.io/badge/CSS-7.8%25-563D7C?logo=css3&logoColor=white">
-  <img alt="Batch" src="https://img.shields.io/badge/Batch-0.7%25-C1F12E">
+  <img alt="Python" src="https://img.shields.io/badge/Python-60%25-3572A5?logo=python&logoColor=white">
+  <img alt="HTML" src="https://img.shields.io/badge/HTML-33.3%25-E34C26?logo=html5&logoColor=white">
+  <img alt="CSS" src="https://img.shields.io/badge/CSS-6.1%25-563D7C?logo=css3&logoColor=white">
+  <img alt="Batch" src="https://img.shields.io/badge/Batch-0.6%25-C1F12E">
 </p>
 <p>
   <img alt="Made with DeepSeek V4.1 Flash + Claude Code" src="https://img.shields.io/badge/Made%20with-DeepSeek%20V4.1%20Flash%20%2B%20Claude%20Code-6F42C1">
