@@ -8,7 +8,7 @@
   <img alt="Batch" src="https://img.shields.io/badge/Batch-0.7%25-C1F12E">
 </p>
 <p>
-  <img alt="Made with DeepSeek V4.1 Flash" src="https://img.shields.io/badge/Made%20with-DeepSeek%20V4.1%20Flash-6F42C1">
+  <img alt="Made with DeepSeek V4.1 Flash + Claude Code" src="https://img.shields.io/badge/Made%20with-DeepSeek%20V4.1%20Flash%20%2B%20Claude%20Code-6F42C1">
   <img alt="Authors: XYX0809 & BA4IHB" src="https://img.shields.io/badge/Authors-XYX0809%20%26%20BA4IHB-0A7EA4">
   <img alt="Platform: Windows" src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white">
 </p>
@@ -29,7 +29,7 @@
 | 🟨 **Batch** | **0.7%** | `▏` |
 
 > 统计口径：项目自有源码的非空行数（共 1841 行，不含依赖、文档与 skill 文件）。
-> 由 **DeepSeek V4.1 Flash** 完成 ｜ 作者：**XYX0809**、**BA4IHB** ｜ 开源许可证：**MIT**
+> 由 **DeepSeek V4.1 Flash** 与 **Claude Code** 完成 ｜ 作者：**XYX0809**、**BA4IHB** ｜ 开源许可证：**MIT**
 
 ---
 
@@ -519,6 +519,7 @@ SOFTWARE.
 **制作工具**
 
 - [DeepSeek V4.1 Flash](https://www.deepseek.com/)
+- [Claude Code](https://claude.com/claude-code)
 
 **致谢**
 
@@ -528,5 +529,5 @@ SOFTWARE.
 ---
 
 <p align="center">
-  <sub>Made with ❤️ by XYX0809 &amp; BA4IHB · Powered by DeepSeek V4.1 Flash · MIT License</sub>
+  <sub>Made with ❤️ by XYX0809 &amp; BA4IHB · Powered by DeepSeek V4.1 Flash + Claude Code · MIT License</sub>
 </p>
