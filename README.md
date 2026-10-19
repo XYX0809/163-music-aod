@@ -84,11 +84,15 @@
 
 - 开源许可证：**MIT**（详见 [LICENSE](LICENSE)）
 - 作者：**XYX0809**、**BA4IHB**
-- 制作工具：**DeepSeek V4.1 Flash** 与 **Claude Code**
 - 完整项目文档：[PROJECT.md](PROJECT.md)
 
 ## Contributors
 
 - [XYX0809](https://github.com/XYX0809) — 项目发起与主要开发
 - [BA4IHB](https://github.com/ba4ihb) — 方案讨论与功能验证
+
+## 制作工具
+
+- DeepSeek V4.1 Flash
+- Claude Code
 
