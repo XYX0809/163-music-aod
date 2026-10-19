@@ -8,8 +8,7 @@
   <img alt="Batch" src="https://img.shields.io/badge/Batch-0.7%25-C1F12E">
 </p>
 <p>
-  <img alt="Made with DeepSeek V4.1 Flash + Claude Code" src="https://img.shields.io/badge/Made%20with-DeepSeek%20V4.1%20Flash%20%2B%20Claude%20Code-6F42C1">
-  <img alt="Made with MiMo v2.5 Pro" src="https://img.shields.io/badge/Made%20with-MiMo%20v2.5%20Pro-FF6900">
+  <img alt="Made with DeepSeek V4.1 Flash + Claude Code + MiMo v2.5 Pro" src="https://img.shields.io/badge/Made%20with-DeepSeek%20V4.1%20Flash%20%2B%20Claude%20Code%20%2B%20MiMo%20v2.5%20Pro-6F42C1">
   <img alt="Authors: XYX0809 & BA4IHB" src="https://img.shields.io/badge/Authors-XYX0809%20%26%20BA4IHB-0A7EA4">
   <img alt="Platform: Windows" src="https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white">
 </p>
