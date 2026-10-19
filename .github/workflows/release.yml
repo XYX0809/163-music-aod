@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build Windows executable
+        run: |
+          pyinstaller --noconfirm --windowed --name 163MusicAOD --add-data "ui;ui" --collect-all webview app.py
+          if (Test-Path "dist/163MusicAOD/163MusicAOD.exe") {
+            Rename-Item "dist/163MusicAOD/163MusicAOD.exe" "163 Music AOD.exe"
+          }
+          Remove-Item "dist/163MusicAOD/debug.log" -ErrorAction SilentlyContinue
+          Remove-Item "dist/163MusicAOD/settings.json" -ErrorAction SilentlyContinue
+
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Copy-Item -Recurse "dist/163MusicAOD" "release/163 Music AOD"
+          @"
+          163 Music AOD（网易云音乐熄屏歌词）
+
+          1. 双击「163 Music AOD.exe」启动。
+          2. 确保网易云音乐正在播放歌曲。
+          3. 调整设置后点击「开启息屏歌词」。
+          4. 按 ESC 或 Ctrl+Alt+Q 退出全屏歌词。
+
+          系统要求：Windows 10/11，Microsoft Edge WebView2 Runtime（Win11 通常已内置）。
+          推荐：在设置窗口底部点击「以调试模式重启网易云」，可获得精确的歌词进度同步。
+
+          开源许可证：MIT
+          作者：XYX0809（第一贡献者）、BA4IHB
+          制作：DeepSeek V4.1 Flash
+          "@ | Out-File -Encoding utf8 "release/163 Music AOD/使用说明.txt"
+          Compress-Archive -Force -Path "release/163 Music AOD" -DestinationPath "release/163-Music-AOD-Windows-${{ github.ref_name }}.zip"
+          git archive --format=zip --prefix=163-Music-AOD-${{ github.ref_name }}/ -o "release/163-Music-AOD-Source-${{ github.ref_name }}.zip" HEAD
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "163 Music AOD ${{ github.ref_name }}"
+          body: |
+            ## 163 Music AOD ${{ github.ref_name }} — 可直接使用的 Windows 版本
+
+            网易云音乐息屏歌词：全屏纯黑 + 大字歌词，模拟手机息屏显示（AOD）。
+
+            ### 下载
+            - **163-Music-AOD-Windows-${{ github.ref_name }}.zip** — 免安装版：解压后双击 `163 Music AOD.exe` 即可使用
+            - **163-Music-AOD-Source-${{ github.ref_name }}.zip** — 源码版：双击 `run.bat` 自动安装依赖
+
+            ### 功能
+            - 统一 5 句歌词，第 3 句为当前句（中英文一致）
+            - 当前句最大并带光晕 / 流光 / 呼吸，相邻句按距离缩小并渐变模糊
+            - 字体（系统 300+ 字体）、字号、透明度、垂直位置、文字颜色、光晕颜色、侧边模糊可调
+            - 精确同步：暂停 / 拖动进度 / 切歌 / 倍速均准确跟随（需以调试模式启动网易云）
+            - 全屏纯黑、隐藏光标，`ESC` 或 `Ctrl + Alt + Q` 退出
+
+            ### 系统要求
+            Windows 10 / 11 + Microsoft Edge WebView2 Runtime（Windows 11 通常已内置）
+
+            ---
+
+            MIT License · 作者：XYX0809（第一贡献者）、BA4IHB · 制作：DeepSeek V4.1 Flash
+          files: |
+            release/163-Music-AOD-Windows-${{ github.ref_name }}.zip
+            release/163-Music-AOD-Source-${{ github.ref_name }}.zip
