@@ -52,7 +52,7 @@ jobs:
 
           开源许可证：MIT
           作者：XYX0809、BA4IHB
-          制作工具：DeepSeek V4.1 Flash、Claude Code 与 MiMo v2.5 Pro
+          制作工具：MiMo v2.5 Pro、DeepSeek V4.1 Flash 与 Claude Code
           "@ | Out-File -Encoding utf8 "release/163 Music AOD/使用说明.txt"
           Compress-Archive -Force -Path "release/163 Music AOD" -DestinationPath "release/163-Music-AOD-Windows-${{ github.ref_name }}.zip"
           git archive --format=zip --prefix=163-Music-AOD-${{ github.ref_name }}/ -o "release/163-Music-AOD-Source-${{ github.ref_name }}.zip" HEAD
@@ -82,7 +82,7 @@ jobs:
 
             ---
 
-            MIT License · 作者：XYX0809、BA4IHB · 制作工具：DeepSeek V4.1 Flash、Claude Code 与 MiMo v2.5 Pro
+            MIT License · 作者：XYX0809、BA4IHB · 制作工具：MiMo v2.5 Pro、DeepSeek V4.1 Flash 与 Claude Code
           files: |
             release/163-Music-AOD-Windows-${{ github.ref_name }}.zip
             release/163-Music-AOD-Source-${{ github.ref_name }}.zip
