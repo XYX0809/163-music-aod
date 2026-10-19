@@ -267,7 +267,7 @@ async function tick() {
   try { s = await pywebview.api.get_state(); }
   catch (e) { return; }
   if (!s) return;
-  if (s.request_close) { pywebview.api.close_overlay(); return; }
+  if (s.request_close) { pywebview.api.close_overlay("hotkey"); return; }
 
   // 歌词签名：歌名变化或歌词由空变有时都要重建（后端切歌瞬间会先返回空歌词）
   const key = (s.title || "") + "|" + (s.artist || "");
@@ -295,7 +295,7 @@ async function init() {
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" || e.key === "Esc") {
-      pywebview.api.close_overlay();
+      pywebview.api.close_overlay("esc");
     }
   });
   document.addEventListener("contextmenu", (e) => e.preventDefault());

@@ -160,9 +160,8 @@ class Api:
         self._guard_thread = threading.Thread(target=_loop, daemon=True)
         self._guard_thread.start()
 
-    def close_overlay(self):
-        import traceback
-        _debug_log("close_overlay called\n" + "".join(traceback.format_stack()[-6:]))
+    def close_overlay(self, source="unknown"):
+        _debug_log(f"close_overlay source={source}")
         overlay = self.windows.get("overlay")
         if overlay is not None:
             self._shrink_overlay()
