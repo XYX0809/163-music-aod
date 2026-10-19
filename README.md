@@ -91,8 +91,11 @@
 - [XYX0809](https://github.com/XYX0809) — 项目发起与主要开发
 - [BA4IHB](https://github.com/ba4ihb) — 方案讨论与功能验证
 
+---
+
 ## 制作工具
+
+本项目在开发过程中使用了以下 AI 工具辅助（工具不计入贡献者）：
 
 - DeepSeek V4.1 Flash
 - Claude Code
-
