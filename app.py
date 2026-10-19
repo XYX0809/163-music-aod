@@ -341,24 +341,28 @@ class Api:
 
 
 def hotkey_thread(api: Api):
-    """全局热键 Ctrl+Alt+Q：退出息屏歌词。"""
+    """全局热键 Ctrl+Alt+Q：轮询按键状态，退出息屏歌词。"""
     try:
+        import win32api
         import win32con
-        import win32gui
-        VK_Q = 0x51  # win32con 可能没有 VK_Q 常量
-        win32gui.RegisterHotKey(None, 1, win32con.MOD_CONTROL | win32con.MOD_ALT, VK_Q)
-        _debug_log("RegisterHotKey done")
-        while True:
-            msg = win32gui.GetMessage(None, 0, 0)
-            if not msg:
-                break
-            # pywin32 返回 (hwnd, message, wParam, lParam)
-            hwnd, message = msg[0], msg[1]
-            if message == win32con.WM_HOTKEY:
-                _debug_log(f"WM_HOTKEY received hwnd={hwnd}")
-                api._set_hotkey()
     except Exception as e:  # noqa: BLE001
-        _debug_log(f"hotkey_thread exception: {e!r}")
+        _debug_log(f"hotkey import failed: {e!r}")
+        return
+    _debug_log("hotkey polling started")
+    prev = False
+    while True:
+        try:
+            ctrl = win32api.GetAsyncKeyState(win32con.VK_CONTROL) & 0x8000
+            alt = win32api.GetAsyncKeyState(win32con.VK_MENU) & 0x8000
+            q = win32api.GetAsyncKeyState(0x51) & 0x8000
+            pressed = bool(ctrl and alt and q)
+            if pressed and not prev:
+                _debug_log("hotkey Ctrl+Alt+Q pressed")
+                api._set_hotkey()
+            prev = pressed
+        except Exception:
+            pass
+        time.sleep(0.08)
 
 
 def _screen_size():
